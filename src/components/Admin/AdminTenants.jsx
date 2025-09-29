@@ -1,21 +1,10 @@
 import React, { useState } from 'react'
 import { 
-  Home, 
-  BarChart3, 
-  Building, 
-  CreditCard, 
   Users, 
   AlertTriangle, 
-  Settings, 
-  HelpCircle, 
-  Menu, 
   X, 
   Plus, 
   Search, 
-  Filter,
-  Bell,
-  User,
-  ChevronDown,
   Eye,
   Edit,
   Trash2,
@@ -27,11 +16,8 @@ import {
   AlertCircle,
   Download,
   FileText,
-  UserCheck,
-  UserX,
   FileImage,
   Archive,
-  RotateCcw,
   Timer
 } from 'lucide-react';
 
@@ -357,30 +343,10 @@ const getFileIcon = (fileType) => {
         <div className="bg-yellow-50 p-4 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-yellow-600 text-sm font-medium">Pending Applications</p>
+              <p className="text-yellow-600 text-sm font-medium">Recent Tenant Applications</p>
               <p className="text-2xl font-bold text-yellow-900">{mockPendingApplications.filter(a => a.status === 'pending').length}</p>
             </div>
             <Clock className="w-8 h-8 text-yellow-600" />
-          </div>
-        </div>
-        
-        <div className="bg-green-50 p-4 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-600 text-sm font-medium">Under Review</p>
-              <p className="text-2xl font-bold text-green-900">{mockPendingApplications.filter(a => a.status === 'under_review').length}</p>
-            </div>
-            <FileText className="w-8 h-8 text-green-600" />
-          </div>
-        </div>
-
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-600 text-sm font-medium">Rejected Apps</p>
-              <p className="text-2xl font-bold text-purple-900">{mockRejectedApplications.length}</p>
-            </div>
-            <Archive className="w-8 h-8 text-purple-600" />
           </div>
         </div>
         
@@ -423,24 +389,24 @@ const getFileIcon = (fileType) => {
             Active Tenants ({mockTenants.filter(t => t.status === 'active').length})
           </button>
           <button
-            onClick={() => setActiveTab('pending')}
+            onClick={() => setActiveTab('recent')}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'pending'
                 ? 'border-yellow-500 text-yellow-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Pending Applications ({mockPendingApplications.length})
+            Recently Joined Tenants ({mockPendingApplications.length})
           </button>
           <button
-            onClick={() => setActiveTab('rejected')}
+            onClick={() => setActiveTab('evicted')}
             className={`py-2 px-1 border-b-2 font-medium text-sm ${
               activeTab === 'rejected'
                 ? 'border-purple-500 text-purple-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Rejected Applications ({mockRejectedApplications.length})
+            Evicted tenants ({mockRejectedApplications.length})
           </button>
           <button
             onClick={() => setActiveTab('all')}
@@ -547,12 +513,12 @@ const getFileIcon = (fileType) => {
       )}
 
       {/* Pending Applications Tab */}
-      {activeTab === 'pending' && (
+      {activeTab === 'recent' && (
         <div className="bg-white rounded-lg shadow">
           <div className="p-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center">
               <Clock className="mr-2 text-yellow-600" />
-              Pending Applications
+              Recent Tenants
               {mockPendingApplications.length > 0 && (
                 <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
                   {mockPendingApplications.length} new
@@ -584,16 +550,7 @@ const getFileIcon = (fileType) => {
                         <p className="text-sm text-gray-500">Submitted: {formatDate(application.submittedAt)}</p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className={`px-3 py-1 text-xs rounded-full font-medium ${
-                          application.status === 'pending' 
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : application.status === 'under_review'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {application.status === 'pending' ? 'New Application' : 
-                           application.status === 'under_review' ? 'Under Review' : 'Processed'}
-                        </span>
+                        
                         <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full flex items-center">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Payment Completed
@@ -672,22 +629,7 @@ const getFileIcon = (fileType) => {
                         </button>
                       </div>
                       
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => handleApproveApplication(application.id)}
-                          className="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                        >
-                          <UserCheck className="w-4 h-4 mr-2" />
-                          Approve Application
-                        </button>
-                        <button
-                          onClick={() => handleRejectApplication(application.id)}
-                          className="flex items-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-                        >
-                          <UserX className="w-4 h-4 mr-2" />
-                          Reject Application
-                        </button>
-                      </div>
+                    
                     </div>
                   </div>
                 ))}
@@ -698,13 +640,13 @@ const getFileIcon = (fileType) => {
       )}
 
       {/* Rejected Applications Tab */}
-      {activeTab === 'rejected' && (
+      {activeTab === 'evicted' && (
         <div className="bg-white rounded-lg shadow">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold flex items-center">
                 <Archive className="mr-2 text-purple-600" />
-                Rejected Applications
+                Evicted Tenants
                 <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
                   Auto-delete in progress
                 </span>
@@ -810,31 +752,15 @@ const getFileIcon = (fileType) => {
                           Download
                         </button>
                       </div>
-                      
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => handleRestoreApplication(application.id)}
-                          className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                        >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          Restore to Review
-                        </button>
-                        <button
-                          onClick={() => handlePermanentDelete(application.id)}
-                          className="flex items-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete Now
-                        </button>
-                      </div>
+                     
                     </div>
                     
                     <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <div className="flex items-center">
                         <AlertCircle className="w-4 h-4 text-yellow-600 mr-2" />
                         <p className="text-sm text-yellow-800">
-                          <strong>Auto-deletion notice:</strong> This application will be permanently deleted in {application.daysUntilDeletion} days. 
-                          All associated documents and data will be removed from the system.
+                          <strong>Auto-deletion notice: </strong>
+                           All associated documents and data will be removed from the system in {application.daysUntilDeletion} days.
                         </p>
                       </div>
                     </div>

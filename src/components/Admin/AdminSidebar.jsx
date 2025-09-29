@@ -1,19 +1,34 @@
+import React from "react";
 import { NavLink } from "react-router-dom";
 import {
   Home, BarChart3, Building, CreditCard, Users,
   AlertTriangle, Settings, HelpCircle, X
 } from "lucide-react";
+import { useNotifications } from "../../context/NotificationContext";
 
 const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
+  const { notifications, markReportsAsViewed } = useNotifications();
+
   const sidebarItems = [
     { path: "/admin", label: "Dashboard", icon: Home },
     { path: "/admin/organisation", label: "Makao Rentals", icon: Building },
     { path: "/admin/payments", label: "Payments", icon: CreditCard },
     { path: "/admin/tenants", label: "Tenants", icon: Users },
-    { path: "/admin/reports", label: "Reports & Issues", icon: AlertTriangle },
+    { 
+      path: "/admin/reports", 
+      label: "Reports & Issues", 
+      icon: AlertTriangle,
+      hasNotification: notifications.reports.hasNew,
+      notificationCount: notifications.reports.count
+    },
     { path: "/admin/settings", label: "Settings", icon: Settings },
     { path: "/admin/help", label: "Help", icon: HelpCircle }
   ];
+
+  const handleReportsClick = () => {
+    markReportsAsViewed();
+    onClose();
+  };
 
   return (
     <>
@@ -48,23 +63,29 @@ const AdminSidebar = ({ isOpen = false, onClose = () => {} }) => {
         <nav className="mt-6">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
+            const isReportsItem = item.path === "/admin/reports";
+            
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
                 end={item.path === "/admin"}
                 className={({ isActive }) =>
-                  `w-full flex items-center px-6 py-3 text-left hover:bg-gray-800 ${
+                  `w-full flex items-center px-6 py-3 text-left hover:bg-gray-800 relative ${
                     isActive ? "bg-blue-600 text-white" : "text-gray-300"
                   }`
                 }
-                // close drawer on mobile when clicking a link
-                onClick={() => {
-                  if (typeof onClose === "function") onClose();
-                }}
+                onClick={isReportsItem ? handleReportsClick : onClose}
               >
-                <Icon className="w-5 h-5 mr-3" />
-                <span>{item.label}</span>
+                <Icon className={`w-5 h-5 mr-3 ${isReportsItem && item.hasNotification ? 'text-red-400' : ''}`} />
+                <span className="flex-1">{item.label}</span>
+                
+                {/* Notification badge */}
+                {isReportsItem && item.hasNotification && item.notificationCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center ml-2 animate-pulse">
+                    {item.notificationCount}
+                  </span>
+                )}
               </NavLink>
             );
           })}

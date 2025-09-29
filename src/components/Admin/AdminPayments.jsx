@@ -36,28 +36,39 @@ import {
   Shield,
   Smartphone,
   Monitor,
-  Tablet
+  Tablet,
+  Percent,
+  TrendingUp,
+  RefreshCw
 } from 'lucide-react';
 
 const AdminPayments = () => {
-      const mockTenants = [
-  { id: 1, name: 'John Doe', email: 'john@email.com', room: 'A101', phone: '+254712345678', status: 'active', rentStatus: 'paid', bookingId: 'BK001' },
-  { id: 2, name: 'Jane Smith', email: 'jane@email.com', room: 'B205', phone: '+254723456789', status: 'active', rentStatus: 'due', bookingId: 'BK002' },
-  { id: 3, name: 'Mike Johnson', email: 'mike@email.com', room: 'C301', phone: '+254734567890', status: 'pending', rentStatus: 'overdue', bookingId: 'BK003' }
-];
+  const mockTenants = [
+    { id: 1, name: 'John Doe', email: 'john@email.com', room: 'A101', phone: '+254712345678', status: 'active', rentStatus: 'paid', bookingId: 'BK001' },
+    { id: 2, name: 'Jane Smith', email: 'jane@email.com', room: 'B205', phone: '+254723456789', status: 'active', rentStatus: 'due', bookingId: 'BK002' },
+    { id: 3, name: 'Mike Johnson', email: 'mike@email.com', room: 'C301', phone: '+254734567890', status: 'pending', rentStatus: 'overdue', bookingId: 'BK003' }
+  ];
 
-const mockReports = [
-  { id: 1, title: 'Power Outlet Not Working', tenant: 'John Doe', room: 'A101', category: 'Electrical', priority: 'high', status: 'open', date: '15/03/2024', description: 'Main power outlet not working' },
-  { id: 2, title: 'Leaky Faucet', tenant: 'Jane Smith', room: 'B205', category: 'Plumbing', priority: 'medium', status: 'in-progress', date: '10/03/2024', description: 'Kitchen faucet leaking' }
-];
+  const mockReports = [
+    { id: 1, title: 'Power Outlet Not Working', tenant: 'John Doe', room: 'A101', category: 'Electrical', priority: 'high', status: 'open', date: '15/03/2024', description: 'Main power outlet not working' },
+    { id: 2, title: 'Leaky Faucet', tenant: 'Jane Smith', room: 'B205', category: 'Plumbing', priority: 'medium', status: 'in-progress', date: '10/03/2024', description: 'Kitchen faucet leaking' }
+  ];
 
-const mockUnits = [
-  { id: 1, unitNumber: 'A101', type: '1BR', rent: 25000, isOccupied: true, tenant: 'John Doe' },
-  { id: 2, unitNumber: 'B205', type: '2BR', rent: 35000, isOccupied: true, tenant: 'Jane Smith' },
-  { id: 3, unitNumber: 'C301', type: 'Studio', rent: 20000, isOccupied: false, tenant: null }
-];
+  const mockUnits = [
+    { id: 1, unitNumber: 'A101', type: '1BR', rent: 25000, isOccupied: true, tenant: 'John Doe' },
+    { id: 2, unitNumber: 'B205', type: '2BR', rent: 35000, isOccupied: true, tenant: 'Jane Smith' },
+    { id: 3, unitNumber: 'C301', type: 'Studio', rent: 20000, isOccupied: false, tenant: null },
+    { id: 4, unitNumber: 'A102', type: '1BR', rent: 25000, isOccupied: false, tenant: null },
+    { id: 5, unitNumber: 'B206', type: '2BR', rent: 35000, isOccupied: true, tenant: 'Alice Brown' },
+    { id: 6, unitNumber: 'C302', type: 'Studio', rent: 20000, isOccupied: true, tenant: 'Bob Wilson' }
+  ];
+
   const [editingUnit, setEditingUnit] = useState(null);
   const [units, setUnits] = useState(mockUnits);
+  const [bulkUpdateType, setBulkUpdateType] = useState('percentage');
+  const [selectedRoomType, setSelectedRoomType] = useState('all');
+  const [percentageIncrease, setPercentageIncrease] = useState('');
+  const [fixedAmount, setFixedAmount] = useState('');
 
   const handlePriceUpdate = (unitId, newPrice) => {
     setUnits(units.map(unit => 
@@ -66,10 +77,190 @@ const mockUnits = [
     setEditingUnit(null);
   };
 
+  const getRoomTypes = () => {
+    const types = [...new Set(units.map(unit => unit.type))];
+    return types;
+  };
+
+  const handleBulkUpdate = () => {
+    if (bulkUpdateType === 'percentage' && percentageIncrease) {
+      const increase = parseFloat(percentageIncrease) / 100;
+      setUnits(units.map(unit => {
+        if (selectedRoomType === 'all' || unit.type === selectedRoomType) {
+          return { ...unit, rent: Math.round(unit.rent * (1 + increase)) };
+        }
+        return unit;
+      }));
+    } else if (bulkUpdateType === 'fixed' && fixedAmount) {
+      const amount = parseFloat(fixedAmount);
+      setUnits(units.map(unit => {
+        if (selectedRoomType === 'all' || unit.type === selectedRoomType) {
+          return { ...unit, rent: Math.round(unit.rent + amount) };
+        }
+        return unit;
+      }));
+    }
+    
+    // Reset form
+    setPercentageIncrease('');
+    setFixedAmount('');
+  };
+
+  const previewBulkUpdate = () => {
+    let affectedUnits = units.filter(unit => 
+      selectedRoomType === 'all' || unit.type === selectedRoomType
+    );
+    
+    if (bulkUpdateType === 'percentage' && percentageIncrease) {
+      const increase = parseFloat(percentageIncrease) / 100;
+      return affectedUnits.map(unit => ({
+        ...unit,
+        newRent: Math.round(unit.rent * (1 + increase))
+      }));
+    } else if (bulkUpdateType === 'fixed' && fixedAmount) {
+      const amount = parseFloat(fixedAmount);
+      return affectedUnits.map(unit => ({
+        ...unit,
+        newRent: Math.round(unit.rent + amount)
+      }));
+    }
+    
+    return [];
+  };
+
+  const previewData = previewBulkUpdate();
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-900">Payments</h1>
+
+      {/* Bulk Price Update Section */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <div className="flex items-center mb-4">
+          <TrendingUp className="w-6 h-6 text-blue-600 mr-2" />
+          <h2 className="text-xl font-semibold">Bulk Price Update</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Update Type
+              </label>
+              <select
+                value={bulkUpdateType}
+                onChange={(e) => setBulkUpdateType(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="percentage">Percentage Increase</option>
+                <option value="fixed">Fixed Amount Increase</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Room Type
+              </label>
+              <select
+                value={selectedRoomType}
+                onChange={(e) => setSelectedRoomType(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Room Types</option>
+                {getRoomTypes().map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            {bulkUpdateType === 'percentage' ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Percentage Increase (%)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={percentageIncrease}
+                    onChange={(e) => setPercentageIncrease(e.target.value)}
+                    placeholder="Enter percentage (e.g., 10)"
+                    className="w-full p-2 pr-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <Percent className="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fixed Amount Increase (KSh)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={fixedAmount}
+                    onChange={(e) => setFixedAmount(e.target.value)}
+                    placeholder="Enter amount (e.g., 2000)"
+                    className="w-full p-2 pl-12 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">KSh</span>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleBulkUpdate}
+              disabled={(!percentageIncrease && bulkUpdateType === 'percentage') || (!fixedAmount && bulkUpdateType === 'fixed')}
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Apply Bulk Update
+            </button>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="font-medium text-gray-900 mb-3">Preview Changes</h3>
+            {previewData.length > 0 ? (
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {previewData.map(unit => (
+                  <div key={unit.id} className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <div>
+                      <span className="font-medium">{unit.unitNumber}</span>
+                      <span className="text-sm text-gray-600 ml-2">({unit.type})</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-gray-500">KSh {unit.rent.toLocaleString()}</span>
+                      <span className="mx-2 text-gray-400">→</span>
+                      <span className="font-medium text-green-600">KSh {unit.newRent.toLocaleString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm">
+                {selectedRoomType === 'all' 
+                  ? 'Enter an amount to preview changes for all units'
+                  : `Enter an amount to preview changes for ${selectedRoomType} units`
+                }
+              </p>
+            )}
+            
+            {previewData.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <div className="flex justify-between text-sm">
+                  <span>Units affected:</span>
+                  <span className="font-medium">{previewData.length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Total increase:</span>
+                  <span className="font-medium text-green-600">
+                    KSh {previewData.reduce((sum, unit) => sum + (unit.newRent - unit.rent), 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-xl font-semibold mb-4">All Payments</h2>
@@ -125,11 +316,7 @@ const mockUnits = [
             <div key={unit.id} className="border rounded-lg p-4">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="font-semibold">Unit {unit.unitNumber}</h3>
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  unit.isOccupied ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                }`}>
-                  {unit.isOccupied ? 'Occupied' : 'Vacant'}
-                </span>
+               
               </div>
               <p className="text-sm text-gray-600 mb-2">Type: {unit.type}</p>
               {unit.tenant && <p className="text-sm text-gray-600 mb-2">Tenant: {unit.tenant}</p>}
@@ -176,4 +363,4 @@ const mockUnits = [
   );
 };
 
-export default AdminPayments
+export default AdminPayments;
