@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import ContextProvider from "./context/AppContext";
+import { TenantToastProvider } from "./context/TenantToastContext";
 
 // auth & layout
 import LoginForm from "./components/LoginForm";
@@ -14,12 +16,13 @@ import AdminSettings from "./components/Admin/AdminSettings";
 import AdminOrganisation from "./components/Admin/AdminOrganisation";
 import AdminTenants from "./components/Admin/AdminTenants";
 import AdminHelp from "./components/Admin/AdminHelp";
+
 // tenant pages
 import TenantDashboard from "./components/Tenant/TenantDashboard";
 import TenantPaymentCenter from "./components/Tenant/TenantPaymentCenter";
 import TenantReportIssue from "./components/Tenant/TenantReportIssue";
 import TenantSettings from "./components/Tenant/TenantSettings";
-import TenantSignUpForm from "/src/components/TenantSignUpForm.jsx";
+import TenantSignUpForm from "./components/TenantSignUpForm";
 
 // ---------------- Protected Route ----------------
 function ProtectedRoute({ children, role }) {
@@ -46,8 +49,8 @@ function AppContent() {
             : <LoginForm onLogin={login} />
         }
       />
-      
-      {/* PUBLIC tenant signup page - accessible without authentication */}
+
+      {/* Public tenant signup page, can only be accessed if there are free rooms */}
       <Route path="/tenant/signup" element={<TenantSignUpForm />} />
 
       {/* Admin routes */}
@@ -60,13 +63,12 @@ function AppContent() {
         }
       >
         <Route index element={<AdminDashboard />} />
-        <Route path="Organisation" element={<AdminOrganisation />} />
-        <Route path="Tenants" element={<AdminTenants />} />
-        <Route path="Help" element={<AdminHelp />} />
+        <Route path="organisation" element={<AdminOrganisation />} />
+        <Route path="tenants" element={<AdminTenants />} />
+        <Route path="help" element={<AdminHelp />} />
         <Route path="reports" element={<AdminReports />} />
         <Route path="payments" element={<AdminPayments />} />
         <Route path="settings" element={<AdminSettings />} />
-       
       </Route>
 
       {/* Tenant routes */}
@@ -74,7 +76,9 @@ function AppContent() {
         path="/tenant"
         element={
           <ProtectedRoute role="tenant">
-            <TenantLayout />
+            <TenantToastProvider>
+              <TenantLayout />
+            </TenantToastProvider>
           </ProtectedRoute>
         }
       >
@@ -82,7 +86,6 @@ function AppContent() {
         <Route path="payments" element={<TenantPaymentCenter />} />
         <Route path="report" element={<TenantReportIssue />} />
         <Route path="settings" element={<TenantSettings />} />
-        {/* REMOVED: Route path="signup" element={<TenantSignUpForm />} */}
       </Route>
 
       {/* Default → login */}
@@ -93,10 +96,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <ContextProvider>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </ContextProvider>
   );
 }

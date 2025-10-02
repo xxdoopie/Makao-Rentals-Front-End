@@ -1,57 +1,38 @@
-import React from 'react'
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Home, 
-  BarChart3, 
-  Building, 
   CreditCard, 
-  Users, 
   AlertTriangle, 
-  Settings, 
-  HelpCircle, 
-  Menu, 
-  X, 
-  Plus, 
-  Search, 
-  Filter,
-  Bell,
-  User,
-  ChevronDown,
-  Eye,
-  Edit,
-  Trash2,
-  Mail,
-  Phone,
-  MapPin,
   DollarSign,
-  Calendar,
-  Clock,
-  CheckCircle,
-  XCircle,
   AlertCircle,
-  Send,
-  Download,
-  Upload,
-  LogOut,
-  Shield,
-  Smartphone,
-  Monitor,
-  Tablet
+  User,
+  Phone,
+  CheckCircle
 } from 'lucide-react';
-// Tenant Components
+
 const TenantDashboard = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Welcome, John Doe</h1>
           <p className="text-gray-600">Room A101 • Booking ID: BK001</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
+          <button 
+            onClick={() => navigate('/tenant/payments')}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+          >
             <CreditCard className="w-5 h-5 mr-2" />
             Pay Rent
           </button>
-          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center">
+          <button 
+            onClick={() => navigate('/tenant/report')}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center"
+          >
             <AlertTriangle className="w-5 h-5 mr-2" />
             Report Issue
           </button>
@@ -70,7 +51,7 @@ const TenantDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-green-50 p-6 rounded-lg">
+        <div className="bg-green-50 p-6 rounded-lg cursor-pointer hover:bg-green-100" onClick={() => navigate('/tenant/payments')}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-600 text-sm font-medium">Monthly Rent</p>
@@ -110,6 +91,7 @@ const TenantDashboard = () => {
             <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Due</span>
           </div>
         </div>
+    
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -156,7 +138,10 @@ const TenantDashboard = () => {
             </div>
           </div>
           
-          <button className="w-full mt-4 text-red-600 hover:text-red-700 font-medium">
+          <button 
+            onClick={() => navigate('/tenant/report')}
+            className="w-full mt-4 text-red-600 hover:text-red-700 font-medium border border-red-200 py-2 rounded-lg hover:bg-red-50"
+          >
             Submit New Report
           </button>
         </div>
@@ -165,5 +150,4 @@ const TenantDashboard = () => {
   );
 };
 
-
-export default TenantDashboard
+export default TenantDashboard;

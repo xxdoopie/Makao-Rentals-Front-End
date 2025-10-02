@@ -1,53 +1,22 @@
-import React from 'react'
-import {useState} from 'react'
-import { 
-  Home, 
-  BarChart3, 
-  Building, 
-  CreditCard, 
-  Users, 
-  AlertTriangle, 
-  Settings, 
-  HelpCircle, 
-  Menu, 
-  X, 
-  Plus, 
-  Search, 
-  Filter,
-  Bell,
-  User,
-  ChevronDown,
-  Eye,
-  Edit,
-  Trash2,
-  Mail,
-  Phone,
-  MapPin,
-  DollarSign,
-  Calendar,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Send,
-  Download,
-  Upload,
-  LogOut,
-  Shield,
-  Smartphone,
-  Monitor,
-  Tablet
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTenantToast } from '../../context/TenantToastContext';
+import { Send, AlertTriangle } from 'lucide-react';
+
 const TenantReportIssue = () => {
+  const navigate = useNavigate();
+  const { showToast } = useTenantToast();
   const [formData, setFormData] = useState({
     category: '',
     priority: '',
     title: '',
     description: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     // Prepare WhatsApp message
     const whatsappMessage = `*New Maintenance Request*\n\nTenant: John Doe\nRoom: A101\nCategory: ${formData.category}\nPriority: ${formData.priority}\nTitle: ${formData.title}\nDescription: ${formData.description}`;
@@ -56,12 +25,9 @@ const TenantReportIssue = () => {
     const adminPhoneNumber = '+254712345678';
     const whatsappUrl = `https://wa.me/${adminPhoneNumber}?text=${encodeURIComponent(whatsappMessage)}`;
     
-    // Open WhatsApp
-    window.open(whatsappUrl, '_blank');
-    
-    // Also prepare for backend API
+    // Prepare for backend API
     const payload = {
-      tenant_id: 1, // Current tenant ID
+      tenant_id: 1,
       category: formData.category,
       priority: formData.priority,
       title: formData.title,
@@ -69,18 +35,16 @@ const TenantReportIssue = () => {
     };
     
     try {
-      // Backend API integration ready
-      // const response = await fetch('/api/v1/maintenance/reports/', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${localStorage.getItem('token')}`
-      //   },
-      //   body: JSON.stringify(payload)
-      // });
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       console.log('Report payload ready for backend:', payload);
-      alert('Report submitted successfully! Admin has been notified via WhatsApp.');
+      
+      // Show success toast
+      showToast('Report submitted successfully! Admin has been notified.', 'success');
+      
+      // Open WhatsApp
+      window.open(whatsappUrl, '_blank');
       
       // Reset form
       setFormData({
@@ -89,17 +53,28 @@ const TenantReportIssue = () => {
         title: '',
         description: ''
       });
+      
+      // Navigate back to dashboard after 2 seconds
+      setTimeout(() => {
+        navigate('/tenant');
+      }, 2000);
+      
     } catch (error) {
       console.error('Error submitting report:', error);
-      alert('Error submitting report');
+      showToast('Error submitting report. Please try again.', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-6">
-        <h1 className="text-3xl font-bold text-red-600">Report an Issue</h1>
-        <p className="text-gray-600">Submit a maintenance request or report a problem</p>
+        <h1 className="text-3xl font-bold text-red-600 flex items-center justify-center">
+          <AlertTriangle className="w-8 h-8 mr-2" />
+          Report an Issue
+        </h1>
+        <p className="text-gray-600 mt-2">Submit a maintenance request or report a problem</p>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow">
@@ -121,7 +96,7 @@ const TenantReportIssue = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Issue Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Issue Category *</label>
             <select
               required
               value={formData.category}
@@ -139,7 +114,7 @@ const TenantReportIssue = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Priority Level *</label>
             <select
               required
               value={formData.priority}
@@ -155,7 +130,7 @@ const TenantReportIssue = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Issue Title</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Issue Title *</label>
             <input
               type="text"
               required
@@ -167,7 +142,7 @@ const TenantReportIssue = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Detailed Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Detailed Description *</label>
             <textarea
               required
               rows={6}
@@ -178,17 +153,34 @@ const TenantReportIssue = () => {
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 flex items-center justify-center"
-          >
-            <Send className="w-5 h-5 mr-2" />
-            Submit Report
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/tenant')}
+              className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 flex items-center justify-center disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>Processing...</>
+              ) : (
+                <>
+                  <Send className="w-5 h-5 mr-2" />
+                  Submit Report
+                </>
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
 };
 
-export default TenantReportIssue
+export default TenantReportIssue;

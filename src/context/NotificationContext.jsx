@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-
+import {AppContext} from './AppContext';
 const NotificationContext = createContext();
 
 export const useNotifications = () => {
@@ -18,15 +18,14 @@ export const NotificationProvider = ({ children }) => {
       lastChecked: null
     }
   });
-
+  
+  
+  
   // Simulate checking for new reports (replace with actual API call)
   const checkForNewReports = useCallback(async () => {
     try {
       // This would be an API call in real implementation
-      const mockReports = [
-        { id: 1, title: 'Power Outlet Not Working', status: 'open', createdAt: new Date() },
-        { id: 2, title: 'Leaky Faucet', status: 'in-progress', createdAt: new Date() }
-      ];
+      const {mockTenants, mockReports} = useContext(AppContext);
       
       const openReports = mockReports.filter(report => report.status === 'open');
       const newReportsCount = openReports.length;

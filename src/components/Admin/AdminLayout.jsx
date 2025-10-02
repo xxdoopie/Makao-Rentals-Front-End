@@ -13,6 +13,7 @@ export default function AdminLayout() {
   const { notifications, markReportsAsViewed } = useNotifications();
   const dropdownRef = useRef(null);
 
+  
   // Mock notification data - replace with real data from your context
   const mockNotifications = [
     {

@@ -1,4 +1,4 @@
-import React, {useContext} from 'react'
+import React, {useContext, useState} from 'react'
 import { 
   Users, 
   AlertTriangle, 
@@ -10,9 +10,12 @@ import {
 } from 'lucide-react';
 import {AppContext} from '../../context/AppContext';
 import { NavLink } from 'react-router-dom';
+import EmailFormModal from './EmailFormModal';
+import WhatsAppFormModal from './WhatsAppFormModal';
 
 const AdminDashboard = ({ onEmailClick }) => {
-
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isWhatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const {mockTenants, mockReports} = useContext(AppContext);
   // Function to handle the tenant signup link
   const handleTenantSignup = () => {
@@ -42,15 +45,23 @@ const AdminDashboard = ({ onEmailClick }) => {
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
           <p className="text-gray-600">Manage your property and tenants</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-col sm:flex-row">
           <button
-            onClick={onEmailClick}
+           onClick={() => setIsEmailModalOpen(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
           >
             <Mail className="w-5 h-5 mr-2" />
             Send Email
           </button>
-          
+     
+              <button
+          onClick={() => setWhatsAppModalOpen(true)}
+          className="bg-green-400 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+        >
+          <Mail className="w-5 h-5 mr-2" />
+          Send WhatsApp
+        </button>
+
           {/* Dropdown for tenant signup options */}
           <div className="relative group">
             <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
@@ -196,6 +207,16 @@ const AdminDashboard = ({ onEmailClick }) => {
           </div>
         </div>
       </div>
+      <EmailFormModal 
+  isOpen={isEmailModalOpen}
+  onClose={() => setIsEmailModalOpen(false)}
+  tenants={mockTenants}
+/>
+<WhatsAppFormModal
+  isOpen={isWhatsAppModalOpen}
+  onClose={() => setWhatsAppModalOpen(false)}
+  tenants={mockTenants}
+/>
     </div>
   );
 };

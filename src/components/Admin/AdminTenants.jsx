@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
+import EmailFormModal from './EmailFormModal';
+import WhatsAppFormModal from './WhatsAppFormModal';
 import { 
   Users, 
   AlertTriangle, 
@@ -18,100 +20,40 @@ import {
   FileText,
   FileImage,
   Archive,
-  Timer
+  Timer,
+  ExternalLink
 } from 'lucide-react';
-
+import { AppContext } from '../../context/AppContext';
 
 const AdminTenants = ({ onEmailClick }) => {
   const [activeTab, setActiveTab] = useState('active');
   const [searchTerm, setSearchTerm] = useState('');
   const [documentPreview, setDocumentPreview] = useState(null);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isWhatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+const {mockTenants, mockPendingApplications, mockEvictedTenants} = useContext(AppContext);
 
-  // Mock current tenants
-  const mockTenants = [
-    { id: 1, name: 'John Doe', email: 'john@email.com', room: 'A101', phone: '+254712345678', status: 'active', rentStatus: 'paid', bookingId: 'BK001', rentAmount: 25000, joinDate: '2024-01-15' },
-    { id: 2, name: 'Jane Smith', email: 'jane@email.com', room: 'B205', phone: '+254723456789', status: 'active', rentStatus: 'due', bookingId: 'BK002', rentAmount: 35000, joinDate: '2024-02-01' },
-    { id: 3, name: 'Mike Johnson', email: 'mike@email.com', room: 'C301', phone: '+254734567890', status: 'inactive', rentStatus: 'overdue', bookingId: 'BK003', rentAmount: 20000, joinDate: '2024-01-20' }
-  ];
+  // Function to handle the tenant signup link
+  const handleTenantSignup = () => {
+    // Get the current domain and create the public signup URL
+    const signupUrl = `${window.location.origin}/tenant/signup`;
+    
+    // Open in new tab
+    window.open(signupUrl, '_blank');
+  };
 
-  // Mock pending applications (from signup form)
-  const mockPendingApplications = [
-    { 
-      id: 'APP001', 
-      name: 'Sarah Wilson', 
-      email: 'sarah@email.com', 
-      phone: '+254701234567',
-      governmentId: '12345678',
-      emergencyContact: '+254798765432',
-      roomType: '1br',
-      roomTypeLabel: '1 Bedroom',
-      paymentAmount: 50000,
-      paymentStatus: 'completed',
-      transactionId: 'MPX1234567890',
-      documents: [
-        { name: 'national_id.pdf', type: 'application/pdf', size: 1024000, uploadedAt: '2024-03-20T10:30:00Z' },
-        { name: 'passport_photo.jpg', type: 'image/jpeg', size: 512000, uploadedAt: '2024-03-20T10:31:00Z' },
-        { name: 'employment_letter.pdf', type: 'application/pdf', size: 768000, uploadedAt: '2024-03-20T10:32:00Z' }
-      ],
-      submittedAt: '2024-03-20T10:30:00Z',
-      status: 'pending'
-    },
-    { 
-      id: 'APP002', 
-      name: 'David Brown', 
-      email: 'david@email.com', 
-      phone: '+254787654321',
-      governmentId: '87654321',
-      emergencyContact: '+254712345678',
-      roomType: 'studio',
-      roomTypeLabel: 'Studio',
-      paymentAmount: 60000,
-      paymentStatus: 'completed',
-      transactionId: 'MPX0987654321',
-      documents: [
-        { name: 'id_document.pdf', type: 'application/pdf', size: 945000, uploadedAt: '2024-03-21T14:15:00Z' },
-        { name: 'bank_statement.pdf', type: 'application/pdf', size: 1200000, uploadedAt: '2024-03-21T14:16:00Z' }
-      ],
-      submittedAt: '2024-03-21T14:15:00Z',
-      status: 'under_review'
+  // Function to copy the signup link to clipboard
+  const copySignupLink = async () => {
+    const signupUrl = `${window.location.origin}/tenant/signup`;
+    try {
+      await navigator.clipboard.writeText(signupUrl);
+      // You could add a toast notification here
+      alert('Signup link copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy: ', err);
     }
-  ];
+  };
 
-  // Mock rejected applications with auto-deletion countdown
-  const mockRejectedApplications = [
-    {
-      id: 'APP004',
-      name: 'Robert Taylor',
-      email: 'robert@email.com',
-      phone: '+254723456789',
-      roomType: 'studio',
-      roomTypeLabel: 'Studio',
-      rejectedAt: '2024-03-18T16:30:00Z',
-      rejectionReason: 'Incomplete documentation - Missing employment verification',
-      daysUntilDeletion: 5,
-      paymentAmount: 60000,
-      refundStatus: 'processed',
-      documents: [
-        { name: 'incomplete_docs.pdf', type: 'application/pdf', size: 512000 }
-      ]
-    },
-    {
-      id: 'APP005',
-      name: 'Emma Wilson',
-      email: 'emma@email.com',
-      phone: '+254756789012',
-      roomType: '1br',
-      roomTypeLabel: '1 Bedroom',
-      rejectedAt: '2024-03-17T09:45:00Z',
-      rejectionReason: 'Failed background verification',
-      daysUntilDeletion: 4,
-      paymentAmount: 75000,
-      refundStatus: 'pending',
-      documents: [
-        { name: 'emma_documents.pdf', type: 'application/pdf', size: 890000 }
-      ]
-    }
-  ];
 
   const handleApproveApplication = (applicationId) => {
     console.log('Approving application:', applicationId);
@@ -185,15 +127,6 @@ const handlePreviewDocument = (document) => {
     }
   };
 
-  const copySignupLink = async () => {
-    const signupUrl = `${window.location.origin}/tenant/signup`;
-    try {
-      await navigator.clipboard.writeText(signupUrl);
-      alert('Signup link copied to clipboard!');
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-    }
-  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-GB', {
@@ -305,27 +238,56 @@ const getFileIcon = (fileType) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-col text-center gap-7 sm:flex-row sm:gap-1">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Tenant Management</h1>
-          <p className="text-gray-600">Manage current tenants and pending applications</p>
+          <p className="text-gray-600">Manage current tenants and view recent applications</p>
         </div>
-        <div className="flex gap-3">
-          <button
-            onClick={onEmailClick}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
-          >
-            <Mail className="w-5 h-5 mr-2" />
-            Send Email
-          </button>
-          <button 
-            onClick={copySignupLink}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Share Signup Link
-          </button>
-        </div>
+        <div className="flex gap-3 flex-col sm:flex-row">
+                 <button
+                  onClick={() => setIsEmailModalOpen(true)}
+                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+                 >
+                   <Mail className="w-5 h-5 mr-2" />
+                   Send Email
+                 </button>
+            
+                     <button
+                 onClick={() => setWhatsAppModalOpen(true)}
+                 className="bg-green-400 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+               >
+                 <Mail className="w-5 h-5 mr-2" />
+                 Send WhatsApp
+               </button>
+       
+                 {/* Dropdown for tenant signup options */}
+                 <div className="relative group">
+                   <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
+                     <Plus className="w-5 h-5 mr-2" />
+                     Add New Tenant
+                   </button>
+                   
+                   {/* Dropdown menu */}
+                   <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                     <div className="py-2">
+                       <button
+                         onClick={handleTenantSignup}
+                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                       >
+                         <ExternalLink className="w-4 h-4 mr-2" />
+                         Open Signup Form
+                       </button>
+                       <button
+                         onClick={copySignupLink}
+                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                       >
+                         <Mail className="w-4 h-4 mr-2" />
+                         Copy Signup Link
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+               </div>
       </div>
 
       {/* Quick Stats */}
@@ -406,7 +368,7 @@ const getFileIcon = (fileType) => {
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            Evicted tenants ({mockRejectedApplications.length})
+            Evicted tenants ({mockEvictedTenants.length})
           </button>
           <button
             onClick={() => setActiveTab('all')}
@@ -656,7 +618,7 @@ const getFileIcon = (fileType) => {
               </div>
             </div>
             
-            {mockRejectedApplications.length === 0 ? (
+            {mockEvictedTenants.length === 0 ? (
               <div className="text-center py-12">
                 <Archive className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Rejected Applications</h3>
@@ -664,7 +626,7 @@ const getFileIcon = (fileType) => {
               </div>
             ) : (
               <div className="space-y-4">
-                {mockRejectedApplications.map(application => (
+                {mockEvictedTenants.map(application => (
                   <div key={application.id} className="border border-red-200 rounded-lg p-6 bg-red-50">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
@@ -861,6 +823,16 @@ const getFileIcon = (fileType) => {
 
       {/* Document Preview Modal */}
       <DocumentPreviewModal />
+      <EmailFormModal 
+  isOpen={isEmailModalOpen}
+  onClose={() => setIsEmailModalOpen(false)}
+  tenants={mockTenants}
+/>
+<WhatsAppFormModal
+  isOpen={isWhatsAppModalOpen}
+  onClose={() => setWhatsAppModalOpen(false)}
+  tenants={mockTenants}
+/>
     </div>
   );
 }

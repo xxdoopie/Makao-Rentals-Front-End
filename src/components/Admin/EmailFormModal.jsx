@@ -157,4 +157,4 @@ const EmailFormModal = ({ isOpen, onClose, tenants }) => {
   );
 };
 
-export default EmailFormModal
+export default EmailFormModal;
